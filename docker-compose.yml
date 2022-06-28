@@ -1,0 +1,43 @@
+version: "3.3"
+services:
+  mysql-lumen:
+    image: mysql:8.0.1
+    container_name: mysql-lumen
+    environment:
+      MYSQL_ROOT_PASSWORD: "123"
+      TZ: America/Manaus
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+  phpmyadmin-lumen:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin-lumen
+    ports:
+      - 8083:80
+    links:
+      - mysql-lumen:db
+  php7_3-lumen:
+    image: cbcarlos7/php73
+    container_name: php7_3-lumen
+    volumes:
+      - ./backend:/var/www/html
+      - ./config/backend/php.ini:/usr/local/etc/php/conf.d/production.ini
+      - ./config/backend/000-default.conf:/etc/apache2/sites-enabled/000-default.conf
+    ports:
+      - 8003:8080
+    depends_on:
+      - mysql-lumen
+  servidor-lumen:
+    image: cbcarlos7/php73
+    container_name: servidor-lumen
+    volumes:
+      - ./www:/var/www/html
+    ports:
+      - 82:8080
+networks:
+  default:
+    name: mysql-network
+    external: true      
